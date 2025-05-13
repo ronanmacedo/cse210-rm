@@ -10,7 +10,7 @@ public class JournalRepository(JournalContext journalContext) : IJournalReposito
 
     private readonly DbSet<Entry> _entries = journalContext.Entries;
 
-    private bool disposedValue;
+    private bool _disposedValue;
 
     public async Task AddEntriesAsync(List<Entry> entries)
     {
@@ -77,14 +77,14 @@ public class JournalRepository(JournalContext journalContext) : IJournalReposito
 
     protected virtual void Dispose(bool disposing)
     {
-        if (!disposedValue)
+        if (!_disposedValue)
         {
             if (disposing)
             {
                 journalContext.Dispose();
             }
 
-            disposedValue = true;
+            _disposedValue = true;
         }
     }
 
