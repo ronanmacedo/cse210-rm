@@ -16,7 +16,7 @@ public class JournalRepository(JournalContext journalContext) : IJournalReposito
     {
         await _entries.AddRangeAsync(entries);
         var saved = journalContext.SaveChanges();
-
+        journalContext.ChangeTracker.Clear();
         if (saved >= 1)
         {
             Console.ForegroundColor = ConsoleColor.Green;
@@ -34,7 +34,7 @@ public class JournalRepository(JournalContext journalContext) : IJournalReposito
     {
         await _journals.AddAsync(journalModel);
         var saved = journalContext.SaveChanges();
-
+        journalContext.ChangeTracker.Clear();
         if (saved >= 1)
         {
             Console.ForegroundColor = ConsoleColor.Green;
@@ -53,6 +53,7 @@ public class JournalRepository(JournalContext journalContext) : IJournalReposito
     {
         var journal = await _journals.AsNoTracking()
             .Where(_ => _.Name == journalName)
+            .AsNoTracking()
             .Include(_ => _.Entries)
             .FirstOrDefaultAsync();
         return journal;
@@ -62,6 +63,7 @@ public class JournalRepository(JournalContext journalContext) : IJournalReposito
     {
         _journals.Update(journalModel);
         var saved = journalContext.SaveChanges();
+        journalContext.ChangeTracker.Clear();
         if (saved >= 1)
         {
             Console.ForegroundColor = ConsoleColor.Green;

@@ -113,10 +113,7 @@ public class JournalService(IJournalRepository journalRepository) : IJournalServ
             newEntries.ForEach(newEntry =>
             {
                 newEntry.Id = Guid.NewGuid();
-                if (newEntry.JournalId == Guid.Empty)
-                {
-                    newEntry.JournalId = existingJournal.Id;
-                }
+                newEntry.JournalId = existingJournal.Id;
             });
 
             await journalRepository.AddEntriesAsync(newEntries);
