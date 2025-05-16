@@ -6,27 +6,10 @@ namespace Develop02.Services;
 
 public class JournalService(IJournalRepository journalRepository) : IJournalService
 {
-    private readonly List<string> _questions = [
-    "Who was the most interesting person I interacted with today?",
-    "What was the best part of my day?",
-    "How did I see the hand of the Lord in my life today?",
-    "What was the strongest emotion I felt today?",
-    "If I had one thing I could do over today, what would it be?",
-    "What challenge did I face today, and how did I respond to it?",
-    "Did I offer or receive meaningful support from someone today?",
-    "What brought me the most joy or made me smile today?",
-    "Did I collaborate with anyone on a task or shared goal today?",
-    "How was your scriptures study today?",
-    "What did you eat today?",
-    "Did you drink your favorite drink today?"];
-
-    public Entry AddEntry(Guid journalId)
+    public Entry AddEntry(Guid journalId, string text, string prompt)
     {
-        Console.WriteLine("Adding a new Entry...");
-        var prompt = GetPrompt();
-        Console.WriteLine(prompt);
-        var text = Console.ReadLine();
-        var entry = new Entry
+        Console.WriteLine("Adding a new entry...");
+        return new Entry
         {
             Id = Guid.Empty,
             Prompt = prompt,
@@ -34,15 +17,12 @@ public class JournalService(IJournalRepository journalRepository) : IJournalServ
             Date = DateTime.UtcNow,
             JournalId = journalId
         };
-        return entry;
     }
 
-    public async Task<Journal> AddJournalAsync(List<Entry> entries)
+    public async Task<Journal> AddJournalAsync(List<Entry> entries, string journalName)
     {
-        Console.WriteLine("Adding a new Journal...");
-        Console.WriteLine("Please, provide a name for the Journal:");
-        var journalName = Console.ReadLine();
-        var existingJournal = await journalRepository.GetJournalAsync(journalName);
+        Console.WriteLine("Adding a new journal...");
+        Journal existingJournal = await journalRepository.GetJournalAsync(journalName);
 
         if (existingJournal != null)
         {
@@ -69,44 +49,33 @@ public class JournalService(IJournalRepository journalRepository) : IJournalServ
     public void ExportJournal(Journal journal)
     {
         Console.WriteLine("Exporting...");
-        var path = "C:/exports";
+        string path = "C:/exports";
         Directory.CreateDirectory(path);
-        var fileDirectory = $"{path}/{journal.Name}.csv";
+        string fileName = $"{journal.Name ?? $"temp{DateTime.UtcNow:yyyy-MM-dd-HHmm}"}.csv";
+        string fileDirectory = $"{path}/{fileName}.csv";
 
         var csvBuilder = new StringBuilder();
 
         csvBuilder.AppendLine("Prompt, Text, Date");
-        foreach (var entry in journal.Entries)
+        foreach (var entry in journal.Entries ?? [])
         {
-            csvBuilder.AppendLine($"{entry.Prompt}, {entry.Text}, {entry.Date:MM/dd/yyyy HH:mm tt}");
+            csvBuilder.AppendLine($"{EscapeCsv(entry.Prompt)}, {EscapeCsv(entry.Text)}, {entry.Date:MM/dd/yyyy HH:mm tt}");
         }
 
         File.WriteAllText(fileDirectory, csvBuilder.ToString());
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine($"{journal.Name} exported successfully!");
-        Console.ResetColor();
+        Utils.DisplaySuccessMessage($"{fileName} exported successfully!");
     }
 
-    public async Task<Journal> GetJournalAsync()
+    public async Task<Journal> GetJournalAsync(string journalName)
     {
-        Console.WriteLine("Getting a Journal...");
-        Console.WriteLine("What is the Journal's name?");
-        var journalName = Console.ReadLine();
-        var journal = await journalRepository.GetJournalAsync(journalName);
-        return journal;
-    }
-
-    private string GetPrompt()
-    {
-        var prompt = _questions[Random.Shared.Next(_questions.Count)];
-        return prompt;
+        Console.WriteLine("Getting a journal...");
+        return await journalRepository.GetJournalAsync(journalName);
     }
 
     private async Task HandleUpdateJournalAsync(Journal existingJournal, List<Entry> entries)
     {
-        var newEntries = entries
-            .Where(currentEntries => !existingJournal.Entries.Any(existingEntries => existingEntries.Id == currentEntries.Id))
-            .ToList();
+        List<Entry> newEntries = [.. entries.Where(
+            currentEntries => !existingJournal.Entries.Any(existingEntries => existingEntries.Id == currentEntries.Id))];
 
         if (newEntries.Count > 0)
         {
@@ -122,5 +91,16 @@ public class JournalService(IJournalRepository journalRepository) : IJournalServ
         existingJournal.Entries = [.. existingJournal.Entries ?? [], .. newEntries];
 
         journalRepository.UpdateJournal(existingJournal);
+    }
+
+    private static string EscapeCsv(string field)
+    {
+        if (field.Contains('"') || field.Contains(',') || field.Contains('\n'))
+        {
+            field = field.Replace("\"", "\"\"");
+            return $"\"{field}\"";
+        }
+
+        return field;
     }
 }

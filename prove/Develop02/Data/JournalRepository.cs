@@ -19,15 +19,11 @@ public class JournalRepository(JournalContext journalContext) : IJournalReposito
         journalContext.ChangeTracker.Clear();
         if (saved >= 1)
         {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("Entries added successfully!");
-            Console.ResetColor();
+            Utils.DisplaySuccessMessage("Entries added successfully!");
             return;
         }
 
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine("An error happened while adding entries.");
-        Console.ResetColor();
+        Utils.DisplayErrorMessage("An error happened while adding entries.");
     }
 
     public async Task<Journal> AddJournalAsync(Journal journalModel)
@@ -37,26 +33,21 @@ public class JournalRepository(JournalContext journalContext) : IJournalReposito
         journalContext.ChangeTracker.Clear();
         if (saved >= 1)
         {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("Journal saved successfully!");
-            Console.ResetColor();
+            Utils.DisplaySuccessMessage("Journal saved successfully!");
             return journalModel;
         }
 
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine("An error happened while saving a new journal.");
-        Console.ResetColor();
+        Utils.DisplayErrorMessage("An error happened while saving a new journal.");
         return null;
     }
 
     public async Task<Journal> GetJournalAsync(string journalName)
     {
-        var journal = await _journals.AsNoTracking()
+        return await _journals.AsNoTracking()
             .Where(_ => _.Name == journalName)
             .AsNoTracking()
             .Include(_ => _.Entries)
             .FirstOrDefaultAsync();
-        return journal;
     }
 
     public void UpdateJournal(Journal journalModel)
@@ -66,15 +57,11 @@ public class JournalRepository(JournalContext journalContext) : IJournalReposito
         journalContext.ChangeTracker.Clear();
         if (saved >= 1)
         {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("Journal updated successfully!");
-            Console.ResetColor();
+            Utils.DisplaySuccessMessage("Journal updated successfully!");
             return;
         }
 
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine("An error happened while update a journal.");
-        Console.ResetColor();
+        Utils.DisplaySuccessMessage("An error happened while update a journal.");
     }
 
     protected virtual void Dispose(bool disposing)
