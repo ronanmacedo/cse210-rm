@@ -8,7 +8,7 @@ namespace Develop02.Views;
 
 internal class MenuView(IServiceScopeFactory serviceScopeFactory) : IHostedService
 {
-    private readonly List<string> _questions = [
+    private readonly string[] _questions = [
         "Who was the most interesting person I interacted with today?",
         "What was the best part of my day?",
         "How did I see the hand of the Lord in my life today?",
@@ -171,6 +171,6 @@ internal class MenuView(IServiceScopeFactory serviceScopeFactory) : IHostedServi
 
     private string GetPrompt()
     {
-        return _questions[Random.Shared.Next(_questions.Count)];
+        return _questions[Random.Shared.Next(_questions.Length)];
     }
 }
